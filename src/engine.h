@@ -24,4 +24,4 @@ void engine_render_ui();
 void engine_render_log(Log* log);
 
 void engine_render_fps();
-void engine_render_sprite(const Point position, const Point sprite);
+void engine_render_sprite(const Vector position, const Vector sprite);

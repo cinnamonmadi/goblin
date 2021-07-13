@@ -1,4 +1,5 @@
 #include "global.h"
+#include "state.h"
 #include "log.h"
 #include "engine.h"
 
@@ -21,6 +22,7 @@ int main(){
         }
     }
 
+    State* state = state_init();
     Log* log = log_init();
 
     bool running = true;
@@ -39,18 +41,22 @@ int main(){
                 int key = e.key.keysym.sym;
                 if(key == SDLK_LEFT){
 
+                    state->player_position.x -= 1;
                     log_push_back(log, "You pressed the r(left) key.");
 
                 }else if(key == SDLK_RIGHT){
 
+                    state->player_position.x += 1;
                     log_push_back(log, "You pressed the y(right) key.");
 
                 }else if(key == SDLK_UP){
 
+                    state->player_position.y -= 1;
                     log_push_back(log, "You pressed the y(up) key.");
 
                 }else if(key == SDLK_DOWN){
 
+                    state->player_position.y += 1;
                     log_push_back(log, "You y(pressed) the r(down) y(key).");
                 }
             }
@@ -60,7 +66,7 @@ int main(){
         engine_clock_tick();
 
         engine_render_clear();
-        engine_render_sprite((Point){ .x = 2, .y = 2 }, (Point){ .x = 5, .y = 5 });
+        engine_render_sprite(state->player_position, state->player_sprite);
         engine_render_log(log);
         engine_render_ui();
         engine_render_fps();

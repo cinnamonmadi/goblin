@@ -1,10 +1,12 @@
 #pragma once
 
-static const int VIEWPORT_WIDTH = 40;
-static const int VIEWPORT_HEIGHT = 20;
-static const int TILE_SIZE = 12;
+static const int VIEWPORT_WIDTH = 20;
+static const int VIEWPORT_HEIGHT = 10;
+static const int TILE_SIZE = 24;
 
-typedef struct Point{
+typedef struct Vector{
     int x;
     int y;
-} Point;
+} Vector;
+
+static const Vector SPRITE_GOBLIN = (Vector){ .x = 40, .y = 2 };

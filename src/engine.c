@@ -319,7 +319,7 @@ void engine_render_fps(){
     engine_render_text(fps_text, COLOR_WHITE, 0, 0);
 }
 
-void engine_render_sprite(const Point position, const Point sprite){
+void engine_render_sprite(const Vector position, const Vector sprite){
 
     if(position.x < 0 || position.x >= VIEWPORT_WIDTH || position.y < 0 || position.y >= VIEWPORT_HEIGHT){
 
