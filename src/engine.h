@@ -5,7 +5,7 @@
 extern const int SCREEN_WIDTH;
 extern const int SCEEN_HEIGHT;
 
-bool engine_init(char* title);
+bool engine_init(const char* title);
 void engine_quit();
 
 void engine_set_resolution(int width, int height);
@@ -18,3 +18,4 @@ void engine_render_clear();
 void engine_render_present();
 
 void engine_render_fps();
+void engine_render_sprite(const int tx, const int ty, const int x, const int y);

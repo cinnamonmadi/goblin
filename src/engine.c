@@ -15,6 +15,11 @@ SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 bool is_fullscreen = false;
 
+// Art variables
+SDL_Texture* spritesheet = NULL;
+int spritesheet_width = 0;
+int spritesheet_height = 0;
+
 // Font variables
 TTF_Font* font_small;
 
@@ -36,7 +41,7 @@ int ups = 0;
 
 // Engine initializiation functions
 
-bool engine_init(char* title){
+bool engine_init(const char* title){
 
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
 
@@ -74,12 +79,32 @@ bool engine_init(char* title){
         return false;
     }
 
+    // Load tileset
+    SDL_Surface* loaded_surface = IMG_Load("./res/spritesheet.png");
+    if(loaded_surface == NULL){
+
+        printf("Unable to load spritesheet image! SDL Error: %s\n", IMG_GetError());
+        return NULL;
+    }
+
+    spritesheet = SDL_CreateTextureFromSurface(renderer, loaded_surface);
+    if(spritesheet == NULL){
+
+        printf("Unable to create spritesheet texture! SDL Error: %s\n", SDL_GetError());
+        return NULL;
+    }
+
+    spritesheet_width = (int)((loaded_surface->w - 1) / 13);
+    spritesheet_height = (int)((loaded_surface->h - 1) / 13);
+
     engine_set_resolution(1280, 720);
 
     return true;
 }
 
 void engine_quit(){
+
+    SDL_DestroyTexture(spritesheet);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -173,13 +198,6 @@ void engine_render_text(const char* text, SDL_Color color, int x, int y){
     SDL_DestroyTexture(text_texture);
 }
 
-void engine_render_fps(){
-
-    char fps_text[10];
-    sprintf(fps_text, "FPS: %i", fps);
-    engine_render_text(fps_text, COLOR_WHITE, 0, 0);
-}
-
 void engine_render_clear(){
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -189,4 +207,37 @@ void engine_render_clear(){
 void engine_render_present(){
 
     SDL_RenderPresent(renderer);
+}
+
+void engine_render_fps(){
+
+    char fps_text[10];
+    sprintf(fps_text, "FPS: %i", fps);
+    engine_render_text(fps_text, COLOR_WHITE, 0, 0);
+}
+
+void engine_render_sprite(const int tx, const int ty, const int x, const int y){
+
+    if(tx < 0 || tx >= spritesheet_width || ty < 0 || ty >= spritesheet_height){
+
+        printf("Error rendering sprite! Coordinate of %i, %i is out of bounds.\n", tx, ty);
+        return;
+    }
+
+    SDL_Rect src_rect = (SDL_Rect){
+
+        .x = 1 + (tx * 13),
+        .y = 1 + (ty * 13),
+        .w = 12,
+        .h = 12
+    };
+    SDL_Rect dst_rect = (SDL_Rect){
+
+        .x = x,
+        .y = y,
+        .w = 36,
+        .h = 36
+    };
+
+    SDL_RenderCopy(renderer, spritesheet, &src_rect, &dst_rect);
 }

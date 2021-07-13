@@ -27,6 +27,7 @@ int main(){
         engine_clock_tick();
 
         engine_render_clear();
+        engine_render_sprite(5, 5, 36, 36);
         engine_render_fps();
         engine_render_present();
     }
