@@ -10,6 +10,12 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 360;
 
+// UI constants
+const int UI_MARGIN = 10;
+SDL_Rect viewport_rect;
+SDL_Rect sidebar_rect;
+SDL_Rect chatlog_rect;
+
 // SDL objects
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -25,6 +31,9 @@ TTF_Font* font_small;
 
 // Color constants
 const SDL_Color COLOR_WHITE = (SDL_Color){ .r = 255, .g = 255, .b = 255, .a = 255 };
+const SDL_Color COLOR_RED = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = 255 };
+const SDL_Color COLOR_YELLOW = (SDL_Color){ .r = 255, .g = 255, .b = 0, .a = 255 };
+const SDL_Color COLOR_GREEN = (SDL_Color){ .r = 0, .g = 255, .b = 0, .a = 255 };
 
 // Timing variables
 const unsigned long SECOND = 1000;
@@ -40,6 +49,28 @@ int ups = 0;
 
 
 // Engine initializiation functions
+
+void engine_init_ui_rects(){
+
+    viewport_rect = (SDL_Rect){
+        .x = UI_MARGIN,
+        .y = UI_MARGIN,
+        .w = VIEWPORT_WIDTH * TILE_SIZE,
+        .h = VIEWPORT_HEIGHT * TILE_SIZE
+    };
+    sidebar_rect = (SDL_Rect){
+        .x = viewport_rect.x + viewport_rect.w + UI_MARGIN,
+        .y = UI_MARGIN,
+        .w = SCREEN_WIDTH - (UI_MARGIN * 3) - viewport_rect.w,
+        .h = viewport_rect.h
+    };
+    chatlog_rect = (SDL_Rect){
+        .x = UI_MARGIN,
+        .y = viewport_rect.y + viewport_rect.h + UI_MARGIN,
+        .w = SCREEN_WIDTH - (UI_MARGIN * 2),
+        .h = SCREEN_HEIGHT - (UI_MARGIN * 3) - viewport_rect.h
+    };
+}
 
 bool engine_init(const char* title){
 
@@ -96,6 +127,8 @@ bool engine_init(const char* title){
 
     spritesheet_width = (int)((loaded_surface->w - 1) / 13);
     spritesheet_height = (int)((loaded_surface->h - 1) / 13);
+
+    engine_init_ui_rects();
 
     engine_set_resolution(1280, 720);
 
@@ -209,6 +242,76 @@ void engine_render_present(){
     SDL_RenderPresent(renderer);
 }
 
+void engine_render_ui(){
+
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+
+    SDL_RenderDrawRect(renderer, &viewport_rect);
+    SDL_RenderDrawRect(renderer, &sidebar_rect);
+    SDL_RenderDrawRect(renderer, &chatlog_rect);
+}
+
+void engine_render_log(Log* log){
+
+    for(int i = 0; i < log->length; i++){
+
+        int log_index = log->position - i;
+        if(log_index < 0){
+
+            log_index += log->length;
+        }
+        int log_char_index = 0;
+
+        char message[3][128];
+        SDL_Color message_colors[3] = { COLOR_WHITE, COLOR_RED, COLOR_YELLOW };
+        int current_color = 0;
+        int message_index = 0;
+
+        while(log->messages[log_index][log_char_index] != '\0'){
+
+            if(current_color != 0 && log->messages[log_index][log_char_index] == ')'){
+
+                current_color = 0;
+                log_char_index++;
+                continue;
+
+            }else if(log->messages[log_index][log_char_index] == 'r' && log->messages[log_index][log_char_index + 1] == '('){
+
+                current_color = 1;
+                log_char_index += 2;
+                continue;
+
+            }else if(log->messages[log_index][log_char_index] == 'y' && log->messages[log_index][log_char_index + 1] == '('){
+
+                current_color = 2;
+                log_char_index += 2;
+                continue;
+            }
+
+            for(int color = 0; color < 3; color++){
+
+                if(color == current_color){
+
+                    message[color][message_index] = log->messages[log_index][log_char_index];
+
+                }else{
+
+                    message[color][message_index] = ' ';
+                }
+            }
+
+            message_index++;
+            log_char_index++;
+        }
+
+        for(int color = 0; color < 3; color++){
+
+            message[color][message_index] = '\0';
+            engine_render_text(message[color], message_colors[color], chatlog_rect.x + 5, chatlog_rect.y + 2 + (12 * i));
+        }
+    }
+}
+
 void engine_render_fps(){
 
     char fps_text[10];
@@ -216,27 +319,32 @@ void engine_render_fps(){
     engine_render_text(fps_text, COLOR_WHITE, 0, 0);
 }
 
-void engine_render_sprite(const int tx, const int ty, const int x, const int y){
+void engine_render_sprite(const Point position, const Point sprite){
 
-    if(tx < 0 || tx >= spritesheet_width || ty < 0 || ty >= spritesheet_height){
+    if(position.x < 0 || position.x >= VIEWPORT_WIDTH || position.y < 0 || position.y >= VIEWPORT_HEIGHT){
 
-        printf("Error rendering sprite! Coordinate of %i, %i is out of bounds.\n", tx, ty);
+        return;
+    }
+
+    if(sprite.x < 0 || sprite.x >= spritesheet_width || sprite.y < 0 || sprite.y >= spritesheet_height){
+
+        printf("Error rendering sprite! Coordinate of %i, %i is out of bounds.\n", sprite.x, sprite.y);
         return;
     }
 
     SDL_Rect src_rect = (SDL_Rect){
 
-        .x = 1 + (tx * 13),
-        .y = 1 + (ty * 13),
+        .x = 1 + (sprite.x * 13),
+        .y = 1 + (sprite.y * 13),
         .w = 12,
         .h = 12
     };
     SDL_Rect dst_rect = (SDL_Rect){
 
-        .x = x,
-        .y = y,
-        .w = 36,
-        .h = 36
+        .x = viewport_rect.x + (position.x * TILE_SIZE),
+        .y = viewport_rect.y + (position.y * TILE_SIZE),
+        .w = TILE_SIZE,
+        .h = TILE_SIZE
     };
 
     SDL_RenderCopy(renderer, spritesheet, &src_rect, &dst_rect);

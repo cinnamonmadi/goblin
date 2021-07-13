@@ -1,5 +1,8 @@
 #pragma once
 
+#include "global.h"
+#include "log.h"
+
 #include <stdbool.h>
 
 extern const int SCREEN_WIDTH;
@@ -17,5 +20,8 @@ float engine_clock_tick();
 void engine_render_clear();
 void engine_render_present();
 
+void engine_render_ui();
+void engine_render_log(Log* log);
+
 void engine_render_fps();
-void engine_render_sprite(const int tx, const int ty, const int x, const int y);
+void engine_render_sprite(const Point position, const Point sprite);
