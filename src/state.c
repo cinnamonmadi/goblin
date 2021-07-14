@@ -16,6 +16,13 @@ State* state_init(){
         state->sidebar_info[i] = malloc(sizeof(char) * 64);
     }
 
+    state->map = map_init(40, 20, (MapParams){
+        .max_rooms = 10,
+        .min_rooms = 5,
+        .room_min_size = 6,
+        .room_max_size = 15
+    });
+
     state->player_position = (Vector){
         .x = 2,
         .y = 2
@@ -23,6 +30,12 @@ State* state_init(){
     state->player_sprite = SPRITE_GOBLIN;
 
     return state;
+}
+
+void state_free(State* state){
+
+    map_free(state->map);
+    free(state);
 }
 
 void pad_string(char* dest, int length, char* left, char* right){

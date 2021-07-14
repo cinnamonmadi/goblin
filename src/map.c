@@ -1,82 +1,69 @@
 #include "map.h"
 
+#include <SDL2/SDL.h>
 #include <stdlib.h>
 
-int rand_range(int min, int max){
+Map* map_init(int width, int height, MapParams params){
 
-    int range = max - min;
-    int num = (rand() % range) + 1 + min;
+    Map* map = malloc(sizeof(Map));
+    map->width = width;
+    map->height = height;
 
-    return num;
-}
+    bool success = false;
+    while(!success){
 
-bool rect_intersects(SDL_Rect* a, SDL_Rect* b){
-    return !(a->x + a->w <= b->x || b->x + b->w <= a->x || a->y + a->h <= b->y || b->y + b->h <= a->y);
-}
-
-int min(int a, int b){
-
-    if(a <= b){
-
-        return a;
-
-    }else{
-
-        return b;
+        map->tiles = map_generate_tiles(width, height, params, &success);
     }
+
+    return map;
 }
 
-int max(int a, int b){
+void map_free(Map* map){
 
-    if(a >= b){
+    for(int x = 0; x < map->width; x++){
 
-        return a;
-
-    }else{
-
-        return b;
+        free(map->tiles[x]);
     }
+    free(map->tiles);
+    free(map);
 }
 
-void create_room(bool** map, SDL_Rect* room){
+void create_room(Vector** tiles, SDL_Rect* room){
 
     for(int x = room->x; x < room->x + room->w; x++){
 
         for(int y = room->y; y < room->y + room->h; y++){
 
-            map[x][y] = false;
+            tiles[x][y] = SPRITE_TILE_WALL;
         }
     }
 }
 
-bool** map_generate(int width, int height){
+Vector** map_generate_tiles(int width, int height, MapParams params, bool* success){
 
-    bool** map = malloc(sizeof(bool*) * width);
+    Vector** tiles = malloc(sizeof(Vector*) * width);
     for(int x = 0; x < width; x++){
 
-        map[x] = malloc(sizeof(bool) * height);
+        tiles[x] = malloc(sizeof(Vector) * height);
         for(int y = 0; y < height; y++){
 
-            map[x][y] = true;
+            tiles[x][y] = SPRITE_NONE;
         }
     }
 
     // Generate rooms
-    int max_rooms = 30;
-    int room_min_size = 6;
-    int room_max_size = 15;
-
-    SDL_Rect rooms[max_rooms];
+    SDL_Rect rooms[params.max_rooms];
     int room_count = 0;
-    for(int r = 0; r < max_rooms; r++){
+    for(int r = 0; r < params.max_rooms; r++){
 
-        int w = rand_range(room_min_size, room_max_size);
-        int h = rand_range(room_min_size, room_max_size);
+        int w = rand_range(params.room_min_size, params.room_max_size);
+        int h = rand_range(params.room_min_size, params.room_max_size);
         int x = rand_range(0, width - w - 1);
         int y = rand_range(0, height - h - 1);
 
         SDL_Rect new_room = { .x = x, .y = y, .w = w, .h = h };
 
+        // If the room overlaps with a previous room, don't create it
         bool overlaps_previous = false;
         for(int other_r = 0; other_r < room_count; other_r++){
 
@@ -91,15 +78,18 @@ bool** map_generate(int width, int height){
             continue;
         }
 
+        // Add the room to the map
         rooms[room_count] = new_room;
-        create_room(map, &new_room);
+        create_room(tiles, &new_room);
         room_count++;
 
+        // If the room is the first room we've created, don't do anything further
         if(room_count == 1){
 
             continue;
         }
 
+        // Otherwise, create a tunnel connecting the new room to the previous room
         int room_index = room_count - 1;
         int previous_room = room_count - 2;
 
@@ -120,43 +110,41 @@ bool** map_generate(int width, int height){
         bool tunnel_horizontally = rand() % 2 == 0;
         if(tunnel_horizontally){
 
-            create_room(map, &(SDL_Rect){
+            create_room(tiles, &(SDL_Rect){
 
                 .x = min_x,
                 .y = previous_center.y,
-                // .w = rand_range(1, max_x - min_x),
                 .w = max_x - min_x + 1,
                 .h = 1
             });
-            create_room(map, &(SDL_Rect){
+            create_room(tiles, &(SDL_Rect){
 
                 .x = new_center.x,
                 .y = min_y,
                 .w = 1,
-                // .h = rand_range(1, max_y - min_y)
                 .h = max_y - min_y + 1
             });
 
         }else{
 
-            create_room(map, &(SDL_Rect){
+            create_room(tiles, &(SDL_Rect){
 
                 .x = previous_center.x,
                 .y = min_y,
                 .w = 1,
-                // .h = rand_range(1, max_y - min_y)
                 .h = max_y - min_y + 1
             });
-            create_room(map, &(SDL_Rect){
+            create_room(tiles, &(SDL_Rect){
 
                 .x = min_x,
                 .y = new_center.y,
-                // .w = rand_range(1, max_x - min_x),
                 .w = max_x - min_x + 1,
                 .h = 1
             });
         }
     }
 
-    return map;
+    *success = room_count < params.min_rooms;
+
+    return tiles;
 }
