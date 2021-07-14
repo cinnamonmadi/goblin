@@ -2,10 +2,16 @@
 #include "state.h"
 #include "log.h"
 #include "engine.h"
+#include "map.h"
 
 #include <SDL2/SDL.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
 
 int main(){
+
+    srand(time(NULL));
 
     bool success = engine_init("Goblin Quest");
     if(!success){
@@ -25,6 +31,7 @@ int main(){
     State* state = state_init();
     state_update_sidebar_info(state);
     Log* log = log_init();
+    bool** map = map_generate(640, 360);
 
     bool running = true;
     engine_clock_init();
@@ -67,11 +74,12 @@ int main(){
         engine_clock_tick();
 
         engine_render_clear();
-        engine_render_sprite(state->player_position, state->player_sprite);
+        engine_render_map(map, 640, 360);
+        /*engine_render_sprite(state->player_position, state->player_sprite);
         engine_render_log(log);
         engine_render_sidebar(state->sidebar_info, SIDEBAR_INFO_LENGTH);
         engine_render_ui();
-        engine_render_fps();
+        engine_render_fps();*/
         engine_render_present();
     }
 

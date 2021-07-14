@@ -325,6 +325,21 @@ void engine_render_sidebar(char** info, int info_length){
     }
 }
 
+void engine_render_map(bool** map, int width, int height){
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    for(int x = 0; x < width; x++){
+
+        for(int y = 0; y < height; y++){
+
+            if(!map[x][y]){
+
+                SDL_RenderDrawPoint(renderer, x, y);
+            }
+        }
+    }
+}
+
 void engine_render_fps(){
 
     char fps_text[10];
