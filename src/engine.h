@@ -22,6 +22,7 @@ void engine_render_present();
 
 void engine_render_ui();
 void engine_render_log(Log* log);
+void engine_render_sidebar(char** info, int info_length);
 
 void engine_render_fps();
 void engine_render_sprite(const Vector position, const Vector sprite);

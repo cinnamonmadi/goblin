@@ -231,6 +231,58 @@ void engine_render_text(const char* text, SDL_Color color, int x, int y){
     SDL_DestroyTexture(text_texture);
 }
 
+void engine_render_colored_text(const char* text, int x, int y){
+
+    char message[3][128];
+    SDL_Color message_colors[3] = { COLOR_WHITE, COLOR_RED, COLOR_YELLOW };
+    int current_color = 0;
+    int message_index = 0;
+
+    int text_index = 0;
+    while(text[text_index] != '\0'){
+
+        if(current_color != 0 && text[text_index] == ')'){
+
+            current_color = 0;
+            text_index++;
+            continue;
+
+        }else if(text[text_index] == 'r' && text[text_index + 1] == '('){
+
+            current_color = 1;
+            text_index += 2;
+            continue;
+
+        }else if(text[text_index] == 'y' && text[text_index + 1] == '('){
+
+            current_color = 2;
+            text_index += 2;
+            continue;
+        }
+
+        for(int color = 0; color < 3; color++){
+
+            if(color == current_color){
+
+                message[color][message_index] = text[text_index];
+
+            }else{
+
+                message[color][message_index] = ' ';
+            }
+        }
+
+        message_index++;
+        text_index++;
+    }
+
+    for(int color = 0; color < 3; color++){
+
+        message[color][message_index] = '\0';
+        engine_render_text(message[color], message_colors[color], x, y);
+    }
+}
+
 void engine_render_clear(){
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -260,55 +312,16 @@ void engine_render_log(Log* log){
 
             log_index += log->length;
         }
-        int log_char_index = 0;
 
-        char message[3][128];
-        SDL_Color message_colors[3] = { COLOR_WHITE, COLOR_RED, COLOR_YELLOW };
-        int current_color = 0;
-        int message_index = 0;
+        engine_render_colored_text(log->messages[log_index], chatlog_rect.x + 5, chatlog_rect.y + 2 + (12 * i));
+    }
+}
 
-        while(log->messages[log_index][log_char_index] != '\0'){
+void engine_render_sidebar(char** info, int info_length){
 
-            if(current_color != 0 && log->messages[log_index][log_char_index] == ')'){
+    for(int i = 0; i < info_length; i++){
 
-                current_color = 0;
-                log_char_index++;
-                continue;
-
-            }else if(log->messages[log_index][log_char_index] == 'r' && log->messages[log_index][log_char_index + 1] == '('){
-
-                current_color = 1;
-                log_char_index += 2;
-                continue;
-
-            }else if(log->messages[log_index][log_char_index] == 'y' && log->messages[log_index][log_char_index + 1] == '('){
-
-                current_color = 2;
-                log_char_index += 2;
-                continue;
-            }
-
-            for(int color = 0; color < 3; color++){
-
-                if(color == current_color){
-
-                    message[color][message_index] = log->messages[log_index][log_char_index];
-
-                }else{
-
-                    message[color][message_index] = ' ';
-                }
-            }
-
-            message_index++;
-            log_char_index++;
-        }
-
-        for(int color = 0; color < 3; color++){
-
-            message[color][message_index] = '\0';
-            engine_render_text(message[color], message_colors[color], chatlog_rect.x + 5, chatlog_rect.y + 2 + (12 * i));
-        }
+        engine_render_colored_text(info[i], sidebar_rect.x + 5, sidebar_rect.y + 2 + (12 * i));
     }
 }
 
