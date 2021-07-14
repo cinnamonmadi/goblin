@@ -15,6 +15,7 @@ typedef struct Vector{
 static const Vector SPRITE_NONE = (Vector){ .x = -1, .y = -1 };
 static const Vector SPRITE_GOBLIN = (Vector){ .x = 40, .y = 2 };
 static const Vector SPRITE_TILE_WALL = (Vector){ .x = 3, .y = 3 };
+static const Vector SPRITE_TILE_FLOOR = (Vector){ .x = 1, .y = 2 };
 
 int min(int a, int b);
 int max(int a, int b);

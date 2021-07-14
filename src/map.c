@@ -198,6 +198,8 @@ Vector** map_generate_tiles(int width, int height, RoomData* data){
                 continue;
             }
 
+            tiles[x][y] = SPRITE_TILE_FLOOR;
+
             Vector adjacent_squares[4] = {
                 (Vector){ .x = x - 1, .y = y },
                 (Vector){ .x = x + 1, .y = y },
