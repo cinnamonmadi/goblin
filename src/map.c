@@ -98,17 +98,20 @@ RoomData* map_room_data_generate(int width, int height, MapParams params){
         int min_y = min(new_center.y, previous_center.y);
         int max_y = max(new_center.y, previous_center.y);
 
+        int hallway_index_a = (room_index - 1) * 2;
+        int hallway_index_b = hallway_index_a + 1;
+
         bool tunnel_horizontally = rand() % 2 == 0;
         if(tunnel_horizontally){
 
-            data->hallways[room_index] = (SDL_Rect){
+            data->hallways[hallway_index_a] = (SDL_Rect){
 
                 .x = min_x,
                 .y = previous_center.y,
                 .w = max_x - min_x + 1,
                 .h = 1
             };
-            data->hallways[room_index + 1] = (SDL_Rect){
+            data->hallways[hallway_index_b] = (SDL_Rect){
 
                 .x = new_center.x,
                 .y = min_y,
@@ -118,14 +121,14 @@ RoomData* map_room_data_generate(int width, int height, MapParams params){
 
         }else{
 
-            data->hallways[room_index] = (SDL_Rect){
+            data->hallways[hallway_index_a] = (SDL_Rect){
 
                 .x = previous_center.x,
                 .y = min_y,
                 .w = 1,
                 .h = max_y - min_y + 1
             };
-            data->rooms[room_index + 1] = (SDL_Rect){
+            data->hallways[hallway_index_b] = (SDL_Rect){
 
                 .x = min_x,
                 .y = new_center.y,
@@ -179,9 +182,9 @@ Vector** map_generate_tiles(int width, int height, RoomData* data){
 
             to_map = data->hallways[r - num_rooms];
         }
-        for(int x = 0; x < to_map.w; x++){
+        for(int x = to_map.x; x < to_map.x + to_map.w; x++){
 
-            for(int y = 0; y < to_map.h; y++){
+            for(int y = to_map.y; y < to_map.y + to_map.h; y++){
 
                 floors[x][y] = true;
             }
@@ -200,14 +203,22 @@ Vector** map_generate_tiles(int width, int height, RoomData* data){
 
             tiles[x][y] = SPRITE_TILE_FLOOR;
 
-            Vector adjacent_squares[4] = {
-                (Vector){ .x = x - 1, .y = y },
-                (Vector){ .x = x + 1, .y = y },
-                (Vector){ .x = x, .y = y - 1 },
-                (Vector){ .x = x, .y = y + 1 }
-            };
+            Vector adjacent_squares[8];
+            int adjacent_index = 0;
+            for(int ax = -1; ax < 2; ax++){
 
-            for(int a = 0; a < 4; a++){
+                for(int ay = -1; ay < 2; ay++){
+
+                    if(ax == 0 && ay == 0){
+
+                        continue;
+                    }
+                    adjacent_squares[adjacent_index] = (Vector){ .x = x + ax, .y = y + ay };
+                    adjacent_index++;
+                }
+            }
+
+            for(int a = 0; a < 8; a++){
 
                 // This shouldn't be possible but it doesn't hurt to check
                 Vector square = adjacent_squares[a];

@@ -9,17 +9,18 @@ typedef struct MapParams{
     int room_max_size;
 } MapParams;
 
-typedef struct Map{
-    Vector** tiles;
-    int width;
-    int height;
-} Map;
-
 typedef struct RoomData{
     SDL_Rect* rooms;
     SDL_Rect* hallways;
     int room_count;
 } RoomData;
+
+
+typedef struct Map{
+    Vector** tiles;
+    int width;
+    int height;
+} Map;
 
 Map* map_init(int width, int height, MapParams params);
 void map_free(Map* map);

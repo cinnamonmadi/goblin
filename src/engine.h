@@ -1,6 +1,7 @@
 #pragma once
 
 #include "global.h"
+#include "state.h"
 #include "log.h"
 
 #include <stdbool.h>
@@ -24,7 +25,7 @@ void engine_render_ui();
 void engine_render_log(Log* log);
 void engine_render_sidebar(char** info, int info_length);
 
-void engine_render_map(Vector** tiles, int width, int height);
+void engine_render_state(State* state);
 
 void engine_render_fps();
 void engine_render_sprite(const Vector position, const Vector sprite);

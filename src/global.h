@@ -12,6 +12,9 @@ typedef struct Vector{
     int y;
 } Vector;
 
+Vector vector_sum(Vector a, Vector b);
+Vector vector_minus(Vector a, Vector b);
+
 static const Vector SPRITE_NONE = (Vector){ .x = -1, .y = -1 };
 static const Vector SPRITE_GOBLIN = (Vector){ .x = 40, .y = 2 };
 static const Vector SPRITE_TILE_WALL = (Vector){ .x = 3, .y = 3 };

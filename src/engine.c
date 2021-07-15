@@ -325,16 +325,16 @@ void engine_render_sidebar(char** info, int info_length){
     }
 }
 
-void engine_render_map(Vector** tiles, int width, int height){
+void engine_render_state(State* state){
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    for(int x = 0; x < width; x++){
+    for(int x = 0; x < VIEWPORT_WIDTH; x++){
 
-        for(int y = 0; y < height; y++){
+        for(int y = 0; y < VIEWPORT_HEIGHT; y++){
 
-            if(tiles[x][y].x != -1){
+            Vector tile = state_map_at(state, x, y);
+            if(tile.x != -1){
 
-                engine_render_sprite((Vector){ .x = x, .y = y }, tiles[x][y]);
+                engine_render_sprite((Vector){ .x = x, .y = y }, tile);
             }
         }
     }

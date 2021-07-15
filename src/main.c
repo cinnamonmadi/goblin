@@ -37,6 +37,7 @@ int main(){
     while(running){
 
         SDL_Event e;
+        int action = ACTION_NONE;
         while(SDL_PollEvent(&e)){
 
             if(e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)){
@@ -48,22 +49,22 @@ int main(){
                 int key = e.key.keysym.sym;
                 if(key == SDLK_LEFT){
 
-                    state->player_position.x -= 1;
+                    action = ACTION_MOVE_LEFT;
                     log_push_back(log, "You pressed the r(left) key.");
 
                 }else if(key == SDLK_RIGHT){
 
-                    state->player_position.x += 1;
+                    action = ACTION_MOVE_RIGHT;
                     log_push_back(log, "You pressed the y(right) key.");
 
                 }else if(key == SDLK_UP){
 
-                    state->player_position.y -= 1;
+                    action = ACTION_MOVE_UP;
                     log_push_back(log, "You pressed the y(up) key.");
 
                 }else if(key == SDLK_DOWN){
 
-                    state->player_position.y += 1;
+                    action = ACTION_MOVE_DOWN;
                     log_push_back(log, "You y(pressed) the r(down) y(key).");
                 }
             }
@@ -72,8 +73,10 @@ int main(){
         // float delta = engine_clock_tick();
         engine_clock_tick();
 
+        state_update(state, action);
+
         engine_render_clear();
-        engine_render_map(state->map->tiles, state->map->width, state->map->height);
+        engine_render_state(state);
         engine_render_sprite(state->player_position, state->player_sprite);
         engine_render_log(log);
         engine_render_sidebar(state->sidebar_info, SIDEBAR_INFO_LENGTH);

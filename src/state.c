@@ -6,6 +6,18 @@
 
 const int SIDEBAR_INFO_LENGTH = 3;
 
+const int CAMERA_BOX_TOP = (int)(VIEWPORT_HEIGHT * 0.3);
+const int CAMERA_BOX_BOT = VIEWPORT_HEIGHT - CAMERA_BOX_TOP;
+const int CAMERA_BOX_LEFT = (int)(VIEWPORT_WIDTH * 0.3);
+const int CAMERA_BOX_RIGHT = VIEWPORT_WIDTH - CAMERA_BOX_LEFT;
+
+Vector direction_vectors[4] = {
+    (Vector){ .x = 0, .y = -1 },
+    (Vector){ .x = 1, .y = 0 },
+    (Vector){ .x = 0, .y = 1 },
+    (Vector){ .x = -1, .y = 0 }
+};
+
 State* state_init(){
 
     State* state = malloc(sizeof(State));
@@ -16,12 +28,14 @@ State* state_init(){
         state->sidebar_info[i] = malloc(sizeof(char) * 64);
     }
 
-    state->map = map_init(40, 20, (MapParams){
+    state->map = map_init(60, 60, (MapParams){
         .max_rooms = 10,
         .min_rooms = 5,
-        .room_min_size = 6,
-        .room_max_size = 15
+        .room_min_size = 3,
+        .room_max_size = 8
     });
+
+    state->camera = (Vector){ .x = 0, .y = 0 };
 
     state->player_position = (Vector){
         .x = 2,
@@ -36,6 +50,69 @@ void state_free(State* state){
 
     map_free(state->map);
     free(state);
+}
+
+Vector state_map_at(State* state, int x, int y){
+
+    Vector coord = vector_sum(state->camera, (Vector){ .x = x, .y = y });
+    return state->map->tiles[coord.x][coord.y];
+}
+
+void state_update(State* state, int action){
+
+    if(action == ACTION_NONE){
+
+        return;
+    }
+
+    if(action >= ACTION_MOVE_UP && action <= ACTION_MOVE_LEFT){
+
+        int direction = action - ACTION_MOVE_UP;
+        state->camera = vector_sum(state->camera, direction_vectors[direction]);
+    }
+
+    state_update_camera(state);
+}
+
+void state_update_camera(State* state){
+
+    /*
+    if(state->player_position.y - state->camera.y < CAMERA_BOX_TOP){
+
+        state->camera.y = state->player_position.y - CAMERA_BOX_TOP;
+
+    }else if(state->player_position.y - state->camera.y > CAMERA_BOX_BOT){
+
+        state->camera.y = state->player_position.y - CAMERA_BOX_BOT;
+    }
+
+    if(state->player_position.x - state->camera.x < CAMERA_BOX_LEFT){
+
+        state->camera.x = state->player_position.x - CAMERA_BOX_LEFT;
+
+    }else if(state->player_position.x - state->camera.x > CAMERA_BOX_RIGHT){
+
+        state->camera.x = state->player_position.x - CAMERA_BOX_RIGHT;
+    }
+    */
+
+    if(state->camera.x < 0){
+
+        state->camera.x = 0;
+
+    }else if(state->camera.x >= state->map->width - VIEWPORT_WIDTH){
+
+        state->camera.x = state->map->width - VIEWPORT_WIDTH;
+    }
+
+    if(state->camera.y < 0){
+
+        state->camera.y = 0;
+
+    }else if(state->camera.y >= state->map->height - VIEWPORT_HEIGHT){
+
+        state->camera.y = state->map->height - VIEWPORT_HEIGHT;
+    }
 }
 
 void pad_string(char* dest, int length, char* left, char* right){

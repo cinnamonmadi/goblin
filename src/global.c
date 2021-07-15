@@ -2,6 +2,16 @@
 
 #include <stdlib.h>
 
+Vector vector_sum(Vector a, Vector b){
+
+    return (Vector){ .x = a.x + b.x, .y = a.y + b.y };
+}
+
+Vector vector_minus(Vector a, Vector b){
+
+    return (Vector){ .x = a.x - b.x, .y = a.y - b.y };
+}
+
 int min(int a, int b){
 
     if(a <= b){
