@@ -20,7 +20,13 @@ Map* map_init(int width, int height, MapParams params){
             map_room_data_free(data);
         }
     }
-    map->tiles = map_generate_tiles(width, height, data);
+    map_generate_tiles(map, width, height, data);
+
+    SDL_Rect player_spawn_room = data->rooms[rand_range(0, data->room_count - 1)];
+    map->player_spawn = (Vector){
+        .x = rand_range(player_spawn_room.x + 1, player_spawn_room.x + player_spawn_room.w),
+        .y = rand_range(player_spawn_room.y + 1, player_spawn_room.y + player_spawn_room.h)
+    };
 
     map_room_data_free(data);
 
@@ -32,8 +38,10 @@ void map_free(Map* map){
     for(int x = 0; x < map->width; x++){
 
         free(map->tiles[x]);
+        free(map->walls[x]);
     }
     free(map->tiles);
+    free(map->walls);
     free(map);
 }
 
@@ -153,18 +161,21 @@ bool map_room_data_validate(RoomData* data, MapParams params){
     return data->room_count >= params.min_rooms && data->room_count <= params.max_rooms;
 }
 
-Vector** map_generate_tiles(int width, int height, RoomData* data){
+void map_generate_tiles(Map* map, int width, int height, RoomData* data){
 
     // Start with an empty floors array and an empty tile array
     bool floors[width][height];
-    Vector** tiles = malloc(sizeof(Vector*) * width);
+    map->tiles = malloc(sizeof(Vector*) * width);
+    map->walls = malloc(sizeof(bool*) * width);
     for(int x = 0; x < width; x++){
 
-        tiles[x] = malloc(sizeof(Vector) * height);
+        map->tiles[x] = malloc(sizeof(Vector) * height);
+        map->walls[x] = malloc(sizeof(bool) * height);
         for(int y = 0; y < height; y++){
 
             floors[x][y] = false;
-            tiles[x][y] = SPRITE_NONE;
+            map->tiles[x][y] = SPRITE_NONE;
+            map->walls[x][y] = false;
         }
     }
 
@@ -201,7 +212,7 @@ Vector** map_generate_tiles(int width, int height, RoomData* data){
                 continue;
             }
 
-            tiles[x][y] = SPRITE_TILE_FLOOR;
+            map->tiles[x][y] = SPRITE_TILE_FLOOR;
 
             Vector adjacent_squares[8];
             int adjacent_index = 0;
@@ -227,13 +238,12 @@ Vector** map_generate_tiles(int width, int height, RoomData* data){
                     continue;
                 }
 
-                if(!floors[square.x][square.y] && tiles[square.x][square.y].x == -1){
+                if(!floors[square.x][square.y] && map->tiles[square.x][square.y].x == -1){
 
-                    tiles[square.x][square.y] = SPRITE_TILE_WALL;
+                    map->tiles[square.x][square.y] = SPRITE_TILE_WALL;
+                    map->walls[square.x][square.y] = true;
                 }
             }
         }
     }
-
-    return tiles;
 }

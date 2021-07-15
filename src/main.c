@@ -76,12 +76,14 @@ int main(){
         state_update(state, action);
 
         engine_render_clear();
+
         engine_render_state(state);
-        engine_render_sprite(state->player_position, state->player_sprite);
         engine_render_log(log);
         engine_render_sidebar(state->sidebar_info, SIDEBAR_INFO_LENGTH);
         engine_render_ui();
+
         engine_render_fps();
+
         engine_render_present();
     }
 

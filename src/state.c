@@ -35,13 +35,12 @@ State* state_init(){
         .room_max_size = 8
     });
 
-    state->camera = (Vector){ .x = 0, .y = 0 };
 
-    state->player_position = (Vector){
-        .x = 2,
-        .y = 2
-    };
+    state->player_position = state->map->player_spawn;
     state->player_sprite = SPRITE_GOBLIN;
+
+    state->camera = (Vector){ .x = 0, .y = 0 };
+    state_update_camera(state);
 
     return state;
 }
@@ -68,7 +67,12 @@ void state_update(State* state, int action){
     if(action >= ACTION_MOVE_UP && action <= ACTION_MOVE_LEFT){
 
         int direction = action - ACTION_MOVE_UP;
-        state->camera = vector_sum(state->camera, direction_vectors[direction]);
+        Vector attempt_position = vector_sum(state->player_position, direction_vectors[direction]);
+
+        if(!state->map->walls[attempt_position.x][attempt_position.y]){
+
+            state->player_position = attempt_position;
+        }
     }
 
     state_update_camera(state);
@@ -76,7 +80,6 @@ void state_update(State* state, int action){
 
 void state_update_camera(State* state){
 
-    /*
     if(state->player_position.y - state->camera.y < CAMERA_BOX_TOP){
 
         state->camera.y = state->player_position.y - CAMERA_BOX_TOP;
@@ -94,7 +97,6 @@ void state_update_camera(State* state){
 
         state->camera.x = state->player_position.x - CAMERA_BOX_RIGHT;
     }
-    */
 
     if(state->camera.x < 0){
 

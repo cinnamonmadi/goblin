@@ -338,6 +338,8 @@ void engine_render_state(State* state){
             }
         }
     }
+
+    engine_render_sprite(vector_minus(state->player_position, state->camera), state->player_sprite);
 }
 
 void engine_render_fps(){
