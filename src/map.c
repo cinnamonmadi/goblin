@@ -24,9 +24,19 @@ Map* map_init(int width, int height, MapParams params){
 
     SDL_Rect player_spawn_room = data->rooms[rand_range(0, data->room_count - 1)];
     map->player_spawn = (Vector){
-        .x = rand_range(player_spawn_room.x + 1, player_spawn_room.x + player_spawn_room.w),
-        .y = rand_range(player_spawn_room.y + 1, player_spawn_room.y + player_spawn_room.h)
+        .x = rand_range(player_spawn_room.x + 1, player_spawn_room.x + player_spawn_room.w - 1),
+        .y = rand_range(player_spawn_room.y + 1, player_spawn_room.y + player_spawn_room.h - 1)
     };
+
+    map->enemy_spawn = map->player_spawn;
+    while(vector_equal(map->enemy_spawn, map->player_spawn)){
+
+        SDL_Rect enemy_spawn_room = data->rooms[rand_range(0, data->room_count - 1)];
+        map->enemy_spawn = (Vector){
+            .x = rand_range(enemy_spawn_room.x + 1, enemy_spawn_room.x + enemy_spawn_room.w - 1),
+            .y = rand_range(enemy_spawn_room.y + 1, enemy_spawn_room.y + enemy_spawn_room.h - 1)
+        };
+    }
 
     map_room_data_free(data);
 
@@ -165,7 +175,7 @@ void map_generate_tiles(Map* map, int width, int height, RoomData* data){
 
     // Start with an empty floors array and an empty tile array
     bool floors[width][height];
-    map->tiles = malloc(sizeof(Vector*) * width);
+    map->tiles = malloc(sizeof(Sprite*) * width);
     map->walls = malloc(sizeof(bool*) * width);
     for(int x = 0; x < width; x++){
 
@@ -238,7 +248,7 @@ void map_generate_tiles(Map* map, int width, int height, RoomData* data){
                     continue;
                 }
 
-                if(!floors[square.x][square.y] && map->tiles[square.x][square.y].x == -1){
+                if(!floors[square.x][square.y] && map->tiles[square.x][square.y] == SPRITE_NONE){
 
                     map->tiles[square.x][square.y] = SPRITE_TILE_WALL;
                     map->walls[square.x][square.y] = true;

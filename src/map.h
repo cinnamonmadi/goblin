@@ -16,12 +16,13 @@ typedef struct RoomData{
 } RoomData;
 
 typedef struct Map{
-    Vector** tiles;
+    Sprite** tiles;
     bool** walls;
     int width;
     int height;
 
     Vector player_spawn;
+    Vector enemy_spawn;
 } Map;
 
 Map* map_init(int width, int height, MapParams params);

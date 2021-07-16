@@ -208,6 +208,11 @@ float engine_clock_tick(){
 
 void engine_render_text(const char* text, SDL_Color color, int x, int y){
 
+    if(strlen(text) == 0){
+
+        return;
+    }
+
     SDL_Surface* text_surface = TTF_RenderText_Solid(font_small, text, color);
     if(text_surface == NULL){
 
@@ -331,15 +336,18 @@ void engine_render_state(State* state){
 
         for(int y = 0; y < VIEWPORT_HEIGHT; y++){
 
-            Vector tile = state_map_at(state, x, y);
-            if(tile.x != -1){
-
-                engine_render_sprite((Vector){ .x = x, .y = y }, tile);
-            }
+            engine_render_sprite((Vector){ .x = x, .y = y }, state_map_at(state, x, y));
         }
     }
 
-    engine_render_sprite(vector_minus(state->player_position, state->camera), state->player_sprite);
+    engine_render_sprite(vector_minus(state->player.position, state->camera), state->player.sprite);
+
+    for(int i = 0; i < state->enemy_count; i++){
+
+        engine_render_sprite(vector_minus(state->enemies[i].position, state->camera), state->enemies[i].sprite);
+    }
+
+    engine_render_sidebar(state->sidebar_info, SIDEBAR_INFO_LENGTH);
 }
 
 void engine_render_fps(){
@@ -349,23 +357,29 @@ void engine_render_fps(){
     engine_render_text(fps_text, COLOR_WHITE, 0, 0);
 }
 
-void engine_render_sprite(const Vector position, const Vector sprite){
+void engine_render_sprite(const Vector position, const Sprite sprite){
+
+    if(sprite == SPRITE_NONE){
+
+        return;
+    }
 
     if(position.x < 0 || position.x >= VIEWPORT_WIDTH || position.y < 0 || position.y >= VIEWPORT_HEIGHT){
 
         return;
     }
 
-    if(sprite.x < 0 || sprite.x >= spritesheet_width || sprite.y < 0 || sprite.y >= spritesheet_height){
+    Vector sprite_vector = SPRITE_VECTORS[sprite];
+    if(sprite_vector.x < 0 || sprite_vector.x >= spritesheet_width || sprite_vector.y < 0 || sprite_vector.y >= spritesheet_height){
 
-        printf("Error rendering sprite! Coordinate of %i, %i is out of bounds.\n", sprite.x, sprite.y);
+        printf("Error rendering sprite! Coordinate of %i, %i is out of bounds.\n", sprite_vector.x, sprite_vector.y);
         return;
     }
 
     SDL_Rect src_rect = (SDL_Rect){
 
-        .x = 1 + (sprite.x * 13),
-        .y = 1 + (sprite.y * 13),
+        .x = 1 + (sprite_vector.x * 13),
+        .y = 1 + (sprite_vector.y * 13),
         .w = 12,
         .h = 12
     };

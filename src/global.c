@@ -2,6 +2,18 @@
 
 #include <stdlib.h>
 
+const Vector SPRITE_VECTORS[SPRITE_COUNT] = {
+    (Vector){ .x = 40, .y = 2 },
+    (Vector){ .x = 3, .y = 14 },
+    (Vector){ .x = 3, .y = 3 },
+    (Vector){ .x = 1, .y = 2 }
+};
+
+bool vector_equal(Vector a, Vector b){
+
+    return a.x == b.x && a.y == b.y;
+}
+
 Vector vector_sum(Vector a, Vector b){
 
     return (Vector){ .x = a.x + b.x, .y = a.y + b.y };
@@ -10,6 +22,11 @@ Vector vector_sum(Vector a, Vector b){
 Vector vector_minus(Vector a, Vector b){
 
     return (Vector){ .x = a.x - b.x, .y = a.y - b.y };
+}
+
+Vector vector_increment(Vector a, int direction){
+
+    return (Vector){ .x = a.x + DIRECTION_VECTORS[direction].x, .y = a.y + DIRECTION_VECTORS[direction].y };
 }
 
 int min(int a, int b){

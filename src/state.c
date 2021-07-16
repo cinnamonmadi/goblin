@@ -11,13 +11,6 @@ const int CAMERA_BOX_BOT = VIEWPORT_HEIGHT - CAMERA_BOX_TOP;
 const int CAMERA_BOX_LEFT = (int)(VIEWPORT_WIDTH * 0.3);
 const int CAMERA_BOX_RIGHT = VIEWPORT_WIDTH - CAMERA_BOX_LEFT;
 
-Vector direction_vectors[4] = {
-    (Vector){ .x = 0, .y = -1 },
-    (Vector){ .x = 1, .y = 0 },
-    (Vector){ .x = 0, .y = 1 },
-    (Vector){ .x = -1, .y = 0 }
-};
-
 State* state_init(){
 
     State* state = malloc(sizeof(State));
@@ -26,7 +19,10 @@ State* state_init(){
     for(int i = 0; i < SIDEBAR_INFO_LENGTH; i++){
 
         state->sidebar_info[i] = malloc(sizeof(char) * 64);
+        strcpy(state->sidebar_info[i], "\0");
     }
+
+    state->log = log_init();
 
     state->map = map_init(60, 60, (MapParams){
         .max_rooms = 10,
@@ -35,9 +31,13 @@ State* state_init(){
         .room_max_size = 8
     });
 
+    state->player = NEW_PLAYER;
+    state->player.position = state->map->player_spawn;
 
-    state->player_position = state->map->player_spawn;
-    state->player_sprite = SPRITE_GOBLIN;
+    state->enemies = malloc(sizeof(Creature));
+    state->enemy_count = 1;
+    state->enemies[0] = NEW_WASP;
+    state->enemies[0].position = state->map->enemy_spawn;
 
     state->camera = (Vector){ .x = 0, .y = 0 };
     state_update_camera(state);
@@ -47,11 +47,35 @@ State* state_init(){
 
 void state_free(State* state){
 
+    log_free(state->log);
     map_free(state->map);
     free(state);
 }
 
-Vector state_map_at(State* state, int x, int y){
+bool state_is_square_empty(State* state, Vector position){
+
+    if(state->map->walls[position.x][position.y]){
+
+        return false;
+    }
+
+    if(vector_equal(position, state->player.position)){
+
+        return false;
+    }
+
+    for(int i = 0; i < state->enemy_count; i++){
+
+        if(vector_equal(position, state->enemies[i].position)){
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
+Sprite state_map_at(State* state, int x, int y){
 
     Vector coord = vector_sum(state->camera, (Vector){ .x = x, .y = y });
     return state->map->tiles[coord.x][coord.y];
@@ -66,36 +90,31 @@ void state_update(State* state, int action){
 
     if(action >= ACTION_MOVE_UP && action <= ACTION_MOVE_LEFT){
 
-        int direction = action - ACTION_MOVE_UP;
-        Vector attempt_position = vector_sum(state->player_position, direction_vectors[direction]);
-
-        if(!state->map->walls[attempt_position.x][attempt_position.y]){
-
-            state->player_position = attempt_position;
-        }
+        state_creature_attempt_move(state, &state->player, action - ACTION_MOVE_UP);
     }
 
     state_update_camera(state);
+    state_update_sidebar_info(state);
 }
 
 void state_update_camera(State* state){
 
-    if(state->player_position.y - state->camera.y < CAMERA_BOX_TOP){
+    if(state->player.position.y - state->camera.y < CAMERA_BOX_TOP){
 
-        state->camera.y = state->player_position.y - CAMERA_BOX_TOP;
+        state->camera.y = state->player.position.y - CAMERA_BOX_TOP;
 
-    }else if(state->player_position.y - state->camera.y > CAMERA_BOX_BOT){
+    }else if(state->player.position.y - state->camera.y > CAMERA_BOX_BOT){
 
-        state->camera.y = state->player_position.y - CAMERA_BOX_BOT;
+        state->camera.y = state->player.position.y - CAMERA_BOX_BOT;
     }
 
-    if(state->player_position.x - state->camera.x < CAMERA_BOX_LEFT){
+    if(state->player.position.x - state->camera.x < CAMERA_BOX_LEFT){
 
-        state->camera.x = state->player_position.x - CAMERA_BOX_LEFT;
+        state->camera.x = state->player.position.x - CAMERA_BOX_LEFT;
 
-    }else if(state->player_position.x - state->camera.x > CAMERA_BOX_RIGHT){
+    }else if(state->player.position.x - state->camera.x > CAMERA_BOX_RIGHT){
 
-        state->camera.x = state->player_position.x - CAMERA_BOX_RIGHT;
+        state->camera.x = state->player.position.x - CAMERA_BOX_RIGHT;
     }
 
     if(state->camera.x < 0){
@@ -174,6 +193,15 @@ void pad_string(char* dest, int length, char* left, char* right){
         dest_index++;
     }
     dest[dest_index] = '\0';
+}
+
+void state_creature_attempt_move(State* state, Creature* creature, int direction){
+
+    Vector attempt_position = vector_increment(state->player.position, direction);
+    if(state_is_square_empty(state, attempt_position)){
+
+        state->player.position = attempt_position;
+    }
 }
 
 void state_update_sidebar_info(State* state){
