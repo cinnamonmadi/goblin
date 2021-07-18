@@ -2,3 +2,6 @@ game
 compile_commands.json
 obj/
 dbg/
+*.js
+*.wasm
+*.data

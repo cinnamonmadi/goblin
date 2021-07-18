@@ -103,7 +103,7 @@ bool engine_init(const char* title){
         return false;
     }
 
-    font_small = TTF_OpenFont("./res/hack.ttf", 10);
+    font_small = TTF_OpenFont("res/hack.ttf", 10);
     if(font_small == NULL){
 
         printf("Unable to initialize font_small! SDL Error: %s\n", TTF_GetError());
@@ -111,7 +111,7 @@ bool engine_init(const char* title){
     }
 
     // Load tileset
-    SDL_Surface* loaded_surface = IMG_Load("./res/spritesheet.png");
+    SDL_Surface* loaded_surface = IMG_Load("res/spritesheet.png");
     if(loaded_surface == NULL){
 
         printf("Unable to load spritesheet image! SDL Error: %s\n", IMG_GetError());
